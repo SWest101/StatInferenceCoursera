@@ -1,0 +1,53 @@
+---
+title: "Statistical Inferences and simulations"
+author: "Shaun"
+date: "February 19, 2017"
+output: html_document
+---
+##Overview
+For the purpose of this assignment, we'll be exploring the estimation of population parameters from samples by using the Central Limit Theorem. It will be shown that, given enough samples, the mean and standard deviation will be approximately normal and act as a good estimate for the population.
+
+```{r echo=TRUE}
+# Load required libraries
+library(ggplot2)
+n <- 40             # Number of exponentials to generate per simulation
+lambda <- 0.2       # Rate parameter for rexp function
+mu <- 1/lambda      # mean 
+sig <- 1/lambda     # standard deviation
+vars <- sig^2       # calculate the variance
+sim.count <- 1000   # Number of simulation to run
+dis.matrix <- NULL  # Initialising data frame
+
+# Run simulation to generate a sim.count by n (1000 x 40) data frame 
+for(i in 1:sim.count){
+  dis.matrix <- rbind(dis.matrix,rexp(n, lambda))
+}
+# Calculate the row means
+rms <- as.data.frame(rowMeans(dis.matrix))
+
+# Calculate the row standard deviations
+sds <- as.data.frame(apply(dis.matrix, 1, sd))
+```
+
+## Graphs
+
+```{r echo=TRUE}
+ggplot(rms, aes(x= rms))+
+  geom_histogram(fill="blue", colour="black")+
+  labs(title="Histogram of mean distribution", x="Mean", y="Count")+
+  geom_vline(xintercept = mu, colour="red")+
+  geom_vline(xintercept = mean(as.matrix(rms)), colour="green")+
+  geom_text(aes(x=mu, label="Theoretical mean", y=10), colour="red", text=element_text(size=11))+
+  geom_text(aes(x=mean(as.matrix(rms)), label="Sample mean", y=30), colour="green", text=element_text(size=11))
+```
+
+
+```{r echo=TRUE}
+ggplot(sds, aes(x= sds))+
+  geom_histogram(fill="blue", colour="black")+
+  labs(title="Histogram of the variance distribution", x="Variance", y="Count")+
+  geom_vline(xintercept = vars, colour="red")+
+  geom_vline(xintercept = var(as.matrix(sds)), colour="green")+
+  geom_text(aes(x = vars, label="Theoretical variance", y=10), colour="red")+
+  geom_text(aes(x = var(as.matrix(sds)), label="Sample variance", y=30), colour="green")
+```
