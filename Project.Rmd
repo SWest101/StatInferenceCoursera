@@ -5,7 +5,11 @@ date: "February 19, 2017"
 output: html_document
 ---
 ##Overview
-For the purpose of this assignment, we'll be exploring the estimation of population parameters from samples by using the Central Limit Theorem. It will be shown that, given enough samples, the mean and standard deviation will be approximately normal and act as a good estimate for the population.
+For the purpose of this assignment, we'll be exploring the estimation of population parameters from samples by using the Central Limit Theorem. It will be shown that, given enough samples, the mean of will be approximately normal and act as a good estimate for the population.
+
+##Simulations
+The following code generates a dataframe with a 1000 rows of 40 randomly generated numbers from an exponential distribution.
+It then calculates the mean and standard deviation of each row.
 
 ```{r echo=TRUE}
 # Load required libraries
@@ -32,9 +36,7 @@ sds <- as.data.frame(apply(dis.matrix, 1, sd))
 colnames(sds) <- "std"
 
 mean.test <- t.test(rms$mean)
-var.test <- t.test(sds$std)
-
-var.test$conf.int
+quantile(rms$mean, c(0.05/2, 1-0.05/2))
 ```
 
 ## Graphs
@@ -46,8 +48,8 @@ ggplot(rms, aes(x= rms))+
   labs(title="Histogram of mean distribution", x="Mean", y="Count")+
   geom_vline(xintercept = mu, colour="red")+
   geom_vline(xintercept = mean(as.matrix(rms)), colour="green")+
-  geom_text(aes(x=mu, label="Theoretical mean", y=10), colour="red", text=element_text(size=11))+
-  geom_text(aes(x=mean(as.matrix(rms)), label="Sample mean", y=30), colour="green", text=element_text(size=11))
+  geom_text(aes(x=mu, label=paste0("Theoretical mean = ", mu), y=10), colour="red")+
+  geom_text(aes(x=mean(as.matrix(rms)), label=paste0("Sample mean = ", round(mean(as.matrix(rms)),2)), y=30), colour="green")
 ```
 
 
@@ -58,6 +60,6 @@ ggplot(sds, aes(x = sds^2))+
   labs(title="Histogram of the variance distribution", x = "Variance", y = "Count")+
   geom_vline(xintercept = vars, colour = "red")+
   geom_vline(xintercept = mean(sds^2), colour="green")+
-  geom_text(aes(x = vars, label="Theoretical variance", y=10), colour="red")+
-  geom_text(aes(x = mean(sds^2), label="Sample variance", y=30), colour="green")
+  geom_text(aes(x = vars, label=paste0("Theoretical variance = ", vars), y=10), colour="red")+
+  geom_text(aes(x = mean(sds^2), label=paste0("Sample variance = ", round(mean(sds^2),2)), y=30), colour="green")
 ```
