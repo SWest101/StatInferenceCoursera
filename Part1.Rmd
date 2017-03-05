@@ -6,11 +6,10 @@ output:
   pdf_document: default
   html_document: default
 ---
-## Part 1
-### Overview
+## Overview
 For the purpose of this assignment, we'll be exploring the estimation of population parameters from samples by using the Central Limit Theorem. It will be shown that, given enough samples, the mean of will be approximately normal and act as a good estimate for the population.
 
-### Simulations
+## Simulations
 The following code generates a dataframe with a 1000 rows of 40 randomly generated numbers (40000 in total) from an exponential distribution.
 It then calculates the mean and standard deviation of each row.
 
@@ -42,7 +41,7 @@ sds <- as.data.frame(apply(dis.matrix, 1, sd))
 colnames(sds) <- "std"
 ```
 
-### Sample Mean versus Theoretical Mean
+## Sample Mean versus Theoretical Mean
 
 The first graph represents a histogram of the random samples generated from a exponential distribution. 
 The second graph represents the mean of 40 exponential generated samples using the same parameters.
@@ -66,7 +65,7 @@ exp.plot <- ggplot(dis.matrix.stacked, aes(x= dis.matrix.stacked))+
 grid.arrange(exp.plot, mean.plot, ncol = 2)
 ```
 
-### Sample Variance versus Theoretical Variance
+## Sample Variance versus Theoretical Variance
 
 The following graph represents the variance of the means of the exponential distribution.
 Unlike the distributions of the mean, it will not always approximate to another distribution.
@@ -83,7 +82,7 @@ ggplot(sds, aes(x = sds^2))+
   geom_text(aes(x = mean(sds^2), label=paste0("Sample variance = ", round(mean(sds^2),2)), y=30), colour="green")
 ```
 
-###Distribution
+## Distribution
 
 We can see that the distribution appears approximately normally distributed as a result of the Central Limit Theorem.
 The red graph below represents a normal distribution with the parameters of the simulation results N ~(mean = `r mean(rms$mean)`, sd = `r sd(rms$mean)`).
@@ -102,75 +101,3 @@ the expected normal distribution results.
 qqnorm(rms$mean)
 qqline(rms$mean, col="red")
 ```
-
-
-## Part 2
-### Overview
-For Part 2 of this assignment, we'll perform an exploratory analysis on the impact that vitamin C has on the length of odontoblasts in guinea pigs via two delivery methods (orange juice and ascorbic acid) at varying dosage levels.
-
-It will be shown that the delivery method does not impact on the length of odontoblast but the dosage level does.
-
-### Visual exploration
-
-```{r echo = TRUE}
-library(datasets)
-suppressMessages(library(dplyr))
-data("ToothGrowth") #loading the required dataset
-ToothGrowth$dose <- as.factor(ToothGrowth$dose) #setting dosage variable to factor
-
-ggplot(ToothGrowth, aes(y = len, x = supp))+
-  geom_boxplot(aes(fill = supp))+ 
-  facet_wrap(~ dose)+
-  labs(title="Boxplot", x="Dosage", y="Length")
-```
-
-The above graph represents the box-plots of different dosage rates for each delivery method.
-It appears that there is an increase of legnth in odontoblasts as there is an increase of dosage rates.
-
-```{r echo=TRUE}
-dosage.graph <- ggplot(ToothGrowth, aes(y = len, x = dose))+
-  geom_boxplot(aes(fill=dose))+
-  labs(title="Boxplot of dosages", x="Dosage", y="Length")
-
-supp.graph <- ggplot(ToothGrowth, aes(y = len, x = supp))+
-  geom_boxplot(aes(fill=supp))+
-  labs(title="Boxplot of delivery method", x="Delivery method", y="Length")
-
-grid.arrange(dosage.graph, supp.graph, ncol=2)
-```
-
-From the graphs above, it appears that there are distinct groups if you were to seperate them by dosage levels. The seperation does not appear to be as clear between delivery methods.
-
-### Numerical analysis
-Summary of dose rate:
-```{r echo=TRUE}
-dose.summary <- tapply(ToothGrowth$len, ToothGrowth$dose, summary)
-dose.summary
-```
-
-
-Summary of the delivery method:
-```{r echo=TRUE}
-supp.summary <- tapply(ToothGrowth$len, ToothGrowth$supp, summary)
-supp.summary
-```
-
-```{r echo = TRUE}
-supp.tresults <- t.test(data = ToothGrowth, len ~ supp, paired = F, var.equal = F)
-supp.tresults
-```
-
-From the t-test above, we can see that there is insufficient evidence to reject the null hypothesis that the means between the two groups are equal as the p-value = `r supp.tresults$p.value` > 0.05.
-```{r echo = TRUE}
-dose.tresults <- pairwise.t.test( ToothGrowth$len, ToothGrowth$dose, p.adj = "bonf", paired = F, pool.sd = F)
-dose.tresults
-```
-
-From the pairwise t-test for the dosage levels with a bonferroni correction, we can see that the null hypothesis that the means are equal can be rejected with alpha = 0.05. Each subgroup is statistically different.
-
-### Conclusions and assumptions
-
-We can conclude that dosage rates have a significant impact on the length of odontoblasts for guinea pigs.
-The following assumptions were made:  
-* The population are independant  
-* The populations have unequal variances
