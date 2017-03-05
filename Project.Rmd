@@ -4,18 +4,19 @@ author: "Shaun"
 date: "February 19, 2017"
 output: html_document
 ---
-##Overview
+## Part 1
+### Overview
 For the purpose of this assignment, we'll be exploring the estimation of population parameters from samples by using the Central Limit Theorem. It will be shown that, given enough samples, the mean of will be approximately normal and act as a good estimate for the population.
 
-##Simulations
-The following code generates a dataframe with a 1000 rows of 40 randomly generated numbers from an exponential distribution.
+### Simulations
+The following code generates a dataframe with a 1000 rows of 40 randomly generated numbers (40000 in total) from an exponential distribution.
 It then calculates the mean and standard deviation of each row.
 
 ```{r echo=TRUE}
 # Load required libraries
 library(ggplot2)
 library(gridExtra)
-library(boot)
+set.seed(42)        # Set random number generator seed for reproducibility
 n <- 40             # Number of exponentials to generate per simulation
 lambda <- 0.2       # Rate parameter for rexp function
 mu <- 1/lambda      # mean 
@@ -28,6 +29,8 @@ dis.matrix <- NULL  # Initialising data frame
 for(i in 1:sim.count){
   dis.matrix <- rbind(dis.matrix,rexp(n, lambda))
 }
+dis.matrix.stacked <- as.data.frame(stack(as.data.frame(dis.matrix))$values)
+
 # Calculate the row means
 rms <- as.data.frame(rowMeans(dis.matrix))
 colnames(rms) <- "mean"
@@ -35,31 +38,38 @@ colnames(rms) <- "mean"
 # Calculate the row standard deviations
 sds <- as.data.frame(apply(dis.matrix, 1, sd))
 colnames(sds) <- "std"
-stack()
-t.test(rms$mean)$conf.int
+normtest <- shapiro.test(rms$mean)
 ```
 
-## Graphs
+### Sample Mean versus Theoretical Mean
+
+The first graph represents a histogram of the random samples generated from a exponential distribution. 
+The second graph represents the mean of 40 exponential generated samples using the same parameters.
+The mean of the mean sample distribution has a 95% confidence interval of `r t.test(rms$mean)$conf.int` where the theoretical mean is `r mu`. 
 
 ```{r echo=TRUE}
 mean.plot <- ggplot(rms, aes(x= rms))+
   geom_histogram(fill="blue", colour="black", bins = 30)+
   scale_x_continuous()+
-  labs(title="Histogram of mean distribution", x="Mean", y="Count")+
+  labs(title="Mean exponential distribution", x="Mean", y="Count")+
   geom_vline(xintercept = mu, colour="red")+
   geom_vline(xintercept = mean(as.matrix(rms)), colour="green")+
   geom_text(aes(x=mu, label=paste0("Theoretical mean = ", mu), y=10), colour="red")+
   geom_text(aes(x=mean(as.matrix(rms)), label=paste0("Sample mean = ", round(mean(as.matrix(rms)),2)), y=30), colour="green")
 
-exp.plot <- ggplot(as.data.frame(dis.matrix), aes(x= as.data.frame(dis.matrix)))+
+exp.plot <- ggplot(dis.matrix.stacked, aes(x= dis.matrix.stacked))+
   geom_histogram(fill="blue", colour="black", bins = 30)+
   scale_x_continuous()+
-  labs(title="Histogram of exp distribution", x="Exponential value", y="Count")
+  labs(title="Exponential distribution", x="Exponential value", y="Count")
 
-grid.arrange(exp.plot, mean.plot)
-
+grid.arrange(exp.plot, mean.plot, ncol = 2)
 ```
 
+### Sample Variance versus Theoretical Variance
+
+The following graph represents the variance of the means of the exponential distribution.
+Unlike the distributions of the mean, it will not always approximate to another distribution.
+The difference between the theoretical distribution and the sample distribution is `r vars - mean(sds^2)`.
 
 ```{r echo=TRUE}
 ggplot(sds, aes(x = sds^2))+
@@ -71,3 +81,20 @@ ggplot(sds, aes(x = sds^2))+
   geom_text(aes(x = vars, label=paste0("Theoretical variance = ", vars), y=10), colour="red")+
   geom_text(aes(x = mean(sds^2), label=paste0("Sample variance = ", round(mean(sds^2),2)), y=30), colour="green")
 ```
+
+###Distribution
+
+We can see that the distribution appears approximately normally distributed as a result of the Central Limit Theorem.
+According to the Shapiro-Wilks test for normality, p = `r normtest$p.value` < 0.05 so there is insufficient evidence to reject the null hypothesis with 95% certainty. 
+The red graph below represents a normal distribution with the parameters of the simulation results N ~(mean = `r mean(rms$mean)`, sd = `r sd(rms$mean)`).
+
+```{r echo = TRUE}
+ggplot(rms, aes(x= rms))+
+  geom_histogram(aes(y=..density..), fill="blue", colour="black", bins = 30)+
+  stat_function(fun = dnorm, args = list(mean = mean(rms$mean), sd = sd(rms$mean)), lwd = 2, col = 'red')+
+  scale_x_continuous()+
+  labs(title="Mean exponential distribution", x="Values", y="Density")
+```
+
+## Part 2
+
