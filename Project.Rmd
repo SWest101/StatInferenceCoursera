@@ -14,6 +14,7 @@ It then calculates the mean and standard deviation of each row.
 ```{r echo=TRUE}
 # Load required libraries
 library(ggplot2)
+library(gridExtra)
 library(boot)
 n <- 40             # Number of exponentials to generate per simulation
 lambda <- 0.2       # Rate parameter for rexp function
@@ -34,15 +35,14 @@ colnames(rms) <- "mean"
 # Calculate the row standard deviations
 sds <- as.data.frame(apply(dis.matrix, 1, sd))
 colnames(sds) <- "std"
-
-mean.test <- t.test(rms$mean)
-quantile(rms$mean, c(0.05/2, 1-0.05/2))
+stack()
+t.test(rms$mean)$conf.int
 ```
 
 ## Graphs
 
 ```{r echo=TRUE}
-ggplot(rms, aes(x= rms))+
+mean.plot <- ggplot(rms, aes(x= rms))+
   geom_histogram(fill="blue", colour="black", bins = 30)+
   scale_x_continuous()+
   labs(title="Histogram of mean distribution", x="Mean", y="Count")+
@@ -50,6 +50,14 @@ ggplot(rms, aes(x= rms))+
   geom_vline(xintercept = mean(as.matrix(rms)), colour="green")+
   geom_text(aes(x=mu, label=paste0("Theoretical mean = ", mu), y=10), colour="red")+
   geom_text(aes(x=mean(as.matrix(rms)), label=paste0("Sample mean = ", round(mean(as.matrix(rms)),2)), y=30), colour="green")
+
+exp.plot <- ggplot(as.data.frame(dis.matrix), aes(x= as.data.frame(dis.matrix)))+
+  geom_histogram(fill="blue", colour="black", bins = 30)+
+  scale_x_continuous()+
+  labs(title="Histogram of exp distribution", x="Exponential value", y="Count")
+
+grid.arrange(exp.plot, mean.plot)
+
 ```
 
 
